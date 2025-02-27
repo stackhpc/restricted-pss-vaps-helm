@@ -1,5 +1,8 @@
-# Privileged containers ---------------------------------------------------------
+# # # # # # # # # # # # # #
+# Security context checks #
+# # # # # # # # # # # # # #
 {{- range tuple "containers" "initcontainers" "ephemeralcontainers" }}
+# Privileged containers ---------------------------------------------------------
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
@@ -16,9 +19,7 @@ spec:
   policyName: kubescape-c-0057-privileged-container-denied-{{ . }}
   validationActions:
   - Deny
-{{- end }}
 # Capabilities ------------------------------------------------------------------
-{{- range tuple "containers" "initcontainers" "ephemeralcontainers" }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
@@ -38,7 +39,46 @@ spec:
   policyName: kubescape-c-0046-deny-resources-with-insecure-capabilities-{{ . }}
   validationActions:
   - Deny
+# Host ports -------------------------------------------------------------------
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: host-ports-{{ . }}
+spec:
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: In
+        values: {{ $.Values.defaultBoundNamespaces }}
+  policyName: kubescape-c-0044-deny-resources-with-host-port-{{ . }}
+  validationActions:
+  - Deny
+# Privilege escalation ---------------------------------------------------------
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: privilege-escalation-{{ . }}
+spec:
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: In
+        values: {{ $.Values.defaultBoundNamespaces }}
+  policyName: kubescape-c-0016-allow-privilege-escalation-{{ . }}
+  validationActions:
+  - Deny
 {{- end }}
+
+# # # # #
+# Other #
+# # # # #
+
 # Host namespaces --------------------------------------------------------------
 ---
 apiVersion: admissionregistration.k8s.io/v1
@@ -89,22 +129,3 @@ spec:
   policyName: kubescape-c-0048-deny-workloads-with-hostpath-mounts
   validationActions:
   - Deny
-# Host ports -------------------------------------------------------------------
-{{- range tuple "containers" "initcontainers" "ephemeralcontainers" }}
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicyBinding
-metadata:
-  creationTimestamp: null
-  name: host-ports-{{ . }}
-spec:
-  matchResources:
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: In
-        values: {{ $.Values.defaultBoundNamespaces }}
-  policyName: kubescape-c-0044-deny-resources-with-host-port-{{ . }}
-  validationActions:
-  - Deny
-{{- end }}
