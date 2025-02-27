@@ -1,0 +1,3 @@
+Uses ValidatingAdmissionPolicies to define a security policy compliant with Kubernetes `restricted` [pod security standard](https://kubernetes.io/docs/concepts/security/pod-security-standards/) by default but can be more granularly overriden to allow exceptions for specific resources.
+
+Uses a combination of custom VAPs and modified versions of those provided in [Kubescape's CEL Library](https://github.com/kubescape/cel-admission-library).

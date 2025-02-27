@@ -1,0 +1,347 @@
+{{- range tuple "containers" "initContainers" "ephemeralContainers" }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: kubescape-c-0057-privileged-container-denied-{{ . | lower }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: |
+      object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, !(has(container.securityContext)) || (
+
+        (!(has(container.securityContext.privileged)) || container.securityContext.privileged != true) &&
+        (!(has(container.securityContext.capabilities)) || !(has(container.securityContext.capabilities.add)) ||
+        container.securityContext.capabilities.add.all(cap, cap != 'SYS_ADM')))
+      )
+    message: Pod has one or more privileged {{ . }}.(see more at https://hub.armosec.io/docs/c-0057)
+  - expression: |
+      ['Deployment','ReplicaSet','DaemonSet','StatefulSet', 'Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, !(has(container.securityContext)) || (
+
+        (!(has(container.securityContext.priviliged)) || container.securityContext.privileged != true) &&
+        (!(has(container.securityContext.capabilities)) || !(has(container.securityContext.capabilities.add)) ||
+        container.securityContext.capabilities.add.all(cap, cap != 'SYS_ADM')))
+      )
+    message: Workloads has one or more privileged {{ . }}.(see more at https://hub.armosec.io/docs/c-0057)
+  - expression: |
+      object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, !(has(container.securityContext)) || (
+
+        (!(has(container.securityContext.priviliged)) || container.securityContext.privileged != true) &&
+        (!(has(container.securityContext.capabilities)) || !(has(container.securityContext.capabilities.add)) ||
+        container.securityContext.capabilities.add.all(cap, cap != 'SYS_ADM')))
+      )
+    message: CronJob has one or more privileged {{ . }}.(see more at https://hub.armosec.io/docs/c-0057)
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: kubescape-c-0046-deny-resources-with-insecure-capabilities-{{ . | lower }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  paramKind:
+    apiVersion: kubescape.io/v1
+    kind: ControlConfiguration
+  validations:
+  - expression: |
+      object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, params.settings.insecureCapabilities.all(insecureCapability, !has(container.securityContext) || !has(container.securityContext.capabilities) || !has(container.securityContext.capabilities.add) || container.securityContext.capabilities.add.all(capability, capability != insecureCapability) ))
+    message: Pod has one or more {{ . }} with insecure capabilities! (see more
+      at https://hub.armosec.io/docs/c-0046)
+  - expression: |
+      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, params.settings.insecureCapabilities.all(insecureCapability, !has(container.securityContext) || !has(container.securityContext.capabilities) || !has(container.securityContext.capabilities.add) || container.securityContext.capabilities.add.all(capability, capability != insecureCapability) ))
+    message: Workload has one or more {{ . }} with insecure capabilities! (see
+      more at https://hub.armosec.io/docs/c-0046)
+  - expression: |
+      object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.{{ . }}) || object.spec.jobTemplate.spec.{{ . }}.all(container, params.settings.insecureCapabilities.all(insecureCapability, !has(container.securityContext) || !has(container.securityContext.capabilities) || !has(container.securityContext.capabilities.add) || container.securityContext.capabilities.add.all(capability, capability != insecureCapability) ))
+    message: CronJob has one or more {{ . }} with insecure capabilities! (see more
+      at https://hub.armosec.io/docs/c-0046)
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: kubescape-c-0044-deny-resources-with-host-port-{{ . | lower }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || !object.spec.{{ . }}.exists(container,
+      has(container.ports) && container.ports.exists(port, has(port.hostPort)))
+    message: One or more {{ . }} in the Pod has Host-port! (see more at https://hub.armosec.io/docs/c-0044)
+  - expression: '[''Deployment'',''ReplicaSet'',''DaemonSet'',''StatefulSet'',''Job''].all(kind,
+      object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || !object.spec.template.spec.{{ . }}.exists(container,
+      has(container.ports) && container.ports.exists(port, has(port.hostPort)))'
+    message: One or more {{ . }} in the Workload has Host-port! (see more at https://hub.armosec.io/docs/c-0044)
+  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.{{ . }}) || !object.spec.jobTemplate.spec.{{ . }}.exists(container,
+      has(container.ports) && container.ports.exists(port, has(port.hostPort)))
+    message: One or more {{ . }} in the CronJob has Host-port! (see more at https://hub.armosec.io/docs/c-0044)
+{{- end }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  annotations:
+    controlUrl: https://hub.armosec.io/docs/c-0041
+  labels:
+    controlId: C-0041
+  name: kubescape-c-0041-deny-resources-with-host-network-access
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: object.kind != 'Pod' || !(has(object.spec.hostNetwork)) || object.spec.hostNetwork
+      == false
+    message: Pods with hostNetwork enabled may cause security issues. (see more at
+      https://hub.armosec.io/docs/c-0041)
+  - expression: '[''Deployment'',''ReplicaSet'',''DaemonSet'',''StatefulSet'',''Job''].all(kind,
+      object.kind != kind) || !(has(object.spec.template.spec.hostNetwork)) || object.spec.template.spec.hostNetwork
+      == false'
+    message: Workloads with hostNetwork enabled may cause security issues. (see more
+      at https://hub.armosec.io/docs/c-0041)
+  - expression: object.kind != 'CronJob' || !(has(object.spec.jobTemplate.spec.template.spec.hostNetwork))
+      || object.spec.jobTemplate.spec.template.spec.hostNetwork == false
+    message: CronJob with hostNetwork enabled may cause security issues. (see more
+      at https://hub.armosec.io/docs/c-0041)
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  annotations:
+    controlUrl: https://hub.armosec.io/docs/c-0038
+  labels:
+    controlId: C-0038
+  name: kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: object.kind != 'Pod' || ((!(has(object.spec.hostPID)) || object.spec.hostPID
+      == false) && (!(has(object.spec.hostIPC)) || object.spec.hostIPC == false))
+    message: Pods with hostPID and hostIPC fields enabled may allow cross-container
+      influence. (see more at https://hub.armosec.io/docs/c-0038)
+  - expression: '[''Deployment'',''ReplicaSet'',''DaemonSet'',''StatefulSet'',''Job''].all(kind,
+      object.kind != kind) || ((!(has(object.spec.template.spec.hostPID)) || object.spec.template.spec.hostPID
+      == false) && (!(has(object.spec.template.spec.hostIPC)) || object.spec.template.spec.hostPID
+      == false))'
+    message: Workloads with hostPID and hostIPC fields enabled may allow cross-container
+      influence. (see more at https://hub.armosec.io/docs/c-0038)
+  - expression: object.kind != 'CronJob' || ((!(has(object.spec.jobTemplate.spec.template.spec.hostPID))
+      || object.spec.jobTemplate.spec.template.spec.hostPID == false) && (!(has(object.spec.jobTemplate.spec.template.spec.hostIPC))
+      || object.spec.jobTemplate.spec.template.spec.hostIPC == false))
+    message: CronJob with hostPID and hostIPC fields enabled may allow cross-container
+      influence. (see more at https://hub.armosec.io/docs/c-0038)
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  annotations:
+    controlUrl: https://hub.armosec.io/docs/c-0048
+  labels:
+    controlId: C-0048
+  name: kubescape-c-0048-deny-workloads-with-hostpath-mounts
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: object.kind != 'Pod' || !has(object.spec.volumes) || object.spec.volumes.all(vol,
+      !(has(vol.hostPath)))
+    message: There are one or more hostPath mounts in the Pod! (see more at https://hub.armosec.io/docs/c-0048)
+  - expression: '[''Deployment'',''ReplicaSet'',''DaemonSet'',''StatefulSet'',''Job''].all(kind,
+      object.kind != kind) || !has(object.spec.template.spec.volumes) || object.spec.template.spec.volumes.all(vol,
+      !(has(vol.hostPath)))'
+    message: There are one or more hostPath mounts in the Workload! (see more at https://hub.armosec.io/docs/c-0048)
+  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.volumes)
+      || object.spec.jobTemplate.spec.volumes.all(vol, !(has(vol.hostPath)))
+    message: There are one or more hostPath mounts in the CronJob! (see more at https://hub.armosec.io/docs/c-0048)
