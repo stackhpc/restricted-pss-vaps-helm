@@ -11,11 +11,8 @@ metadata:
   name: privileged-{{ . }}
 spec:
   matchResources:
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: In
-        values: {{ $.Values.defaultBoundNamespaces }}
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
   policyName: kubescape-c-0057-privileged-container-denied-{{ . }}
   validationActions:
   - Deny
@@ -28,11 +25,8 @@ metadata:
   name: capabilities-{{ . }}
 spec:
   matchResources:
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: In
-        values: {{ $.Values.defaultBoundNamespaces }}
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
   paramRef:
     name: basic-control-configuration # use restricted-params eventually
     parameterNotFoundAction: Deny
@@ -48,11 +42,8 @@ metadata:
   name: host-ports-{{ . }}
 spec:
   matchResources:
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: In
-        values: {{ $.Values.defaultBoundNamespaces }}
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
   policyName: kubescape-c-0044-deny-resources-with-host-port-{{ . }}
   validationActions:
   - Deny
@@ -65,11 +56,8 @@ metadata:
   name: privilege-escalation-{{ . }}
 spec:
   matchResources:
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: In
-        values: {{ $.Values.defaultBoundNamespaces }}
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
   policyName: kubescape-c-0016-allow-privilege-escalation-{{ . }}
   validationActions:
   - Deny
@@ -83,11 +71,8 @@ metadata:
   name: apparmor-{{ . }}
 spec:
   matchResources:
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: In
-        values: {{ $.Values.defaultBoundNamespaces }}
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
   policyName: not-overriding-apparmor-{{ . }}
   validationActions:
   - Deny
@@ -106,11 +91,8 @@ metadata:
   name: host-networking
 spec:
   matchResources:
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: In
-        values: {{ .Values.defaultBoundNamespaces }}
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
   policyName: kubescape-c-0041-deny-resources-with-host-network-access
   validationActions:
   - Deny
@@ -122,11 +104,8 @@ metadata:
   name: host-pid-ipc
 spec:
   matchResources:
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: In
-        values: {{ .Values.defaultBoundNamespaces }}
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
   policyName: kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges
   validationActions:
   - Deny
@@ -139,11 +118,8 @@ metadata:
   name: hostpath-mounts
 spec:
   matchResources:
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: In
-        values: {{ .Values.defaultBoundNamespaces }}
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
   policyName: kubescape-c-0048-deny-workloads-with-hostpath-mounts
   validationActions:
   - Deny

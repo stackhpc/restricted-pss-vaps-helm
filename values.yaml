@@ -1,5 +1,9 @@
-defaultBoundNamespaces:
-  - default
+defaultBindingNamespaceSelector:
+  matchExpressions:
+  - key: kubernetes.io/metadata.name
+    operator: In
+    values:
+    - default
 
 _containerCheckExpressions:
   appArmor: "!has(container.securityContext) || !has(container.securityContext.appArmorProfile) || !has(container.securityContext.appArmorProfile.type) || container.securityContext.appArmorProfile.type != 'Unconfined'"
