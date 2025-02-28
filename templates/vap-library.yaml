@@ -225,7 +225,103 @@ spec:
       has(container.securityContext) && has(container.securityContext.allowPrivilegeEscalation)
       &&  container.securityContext.allowPrivilegeEscalation == false)
     message: CronJob with privileged {{ . }} are not allowed! (see more at https://hub.armosec.io/docs/c-0016)
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: not-overriding-apparmor-{{ . | lower }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.appArmor }})
+    message: AppArmor profile types must not be set to Unconfined
+  - expression: |
+      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.appArmor }})
+    message: AppArmor profile types must not be set to Unconfined
+  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.appArmor }})
+    message: AppArmor profile types must not be set to Unconfined
 {{- end }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: not-overriding-apparmor-global
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: object.kind != 'Pod' || !has(object.spec.securityContext) || !has(object.spec.securityContext.appArmorProfile) || !has(object.spec.securityContext.appArmorProfile.type) || object.spec.securityContext.appArmorProfile.type != 'Unconfined'
+    message: AppArmor profile types must not be set to Unconfined
+  - expression: |
+      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.securityContext) || !has(object.spec.template.spec.securityContext.appArmorProfile) || !has(object.spec.template.spec.securityContext.appArmorProfile.type) || object.spec.template.spec.securityContext.appArmorProfile.type != 'Unconfined'
+    message: AppArmor profile types must not be set to Unconfined
+  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.securityContext) || !has(object.spec.jobTemplate.spec.template.spec.securityContext.appArmorProfile) || !has(object.spec.jobTemplate.spec.template.spec.securityContext.appArmorProfile.type) || object.spec.jobTemplate.spec.template.spec.securityContext.appArmorProfile.type != 'Unconfined'
+    message: AppArmor profile types must not be set to Unconfined
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy

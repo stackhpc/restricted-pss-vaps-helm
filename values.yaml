@@ -1,2 +1,5 @@
 defaultBoundNamespaces:
-  - defaults
+  - default
+
+_containerCheckExpressions:
+  appArmor: "!has(container.securityContext) || !has(container.securityContext.appArmorProfile) || !has(container.securityContext.appArmorProfile.type) || container.securityContext.appArmorProfile.type != 'Unconfined'"
