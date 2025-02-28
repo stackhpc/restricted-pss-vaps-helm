@@ -12,7 +12,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
   policyName: kubescape-c-0057-privileged-container-denied-{{ . }}
   validationActions:
   - Deny
@@ -26,7 +26,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
   paramRef:
     name: basic-control-configuration # use restricted-params eventually
     parameterNotFoundAction: Deny
@@ -43,7 +43,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
   policyName: kubescape-c-0044-deny-resources-with-host-port-{{ . }}
   validationActions:
   - Deny
@@ -57,12 +57,12 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
   policyName: kubescape-c-0016-allow-privilege-escalation-{{ . }}
   validationActions:
   - Deny
 {{- end }}
-{{- range tuple "containers" "initcontainers" "ephemeralcontainers" "global" }}
+{{- range list "containers" "initcontainers" "ephemeralcontainers" "global" }}
 # AppArmor ---------------------------------------------------------------------
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
@@ -72,8 +72,21 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
   policyName: not-overriding-apparmor-{{ . }}
+  validationActions:
+  - Deny
+# Run as non-root --------------------------------------------------------------
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: run-as-non-root-{{ . }}
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: run-as-non-root-{{ . }}
   validationActions:
   - Deny
 {{- end }}
@@ -92,7 +105,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
   policyName: kubescape-c-0041-deny-resources-with-host-network-access
   validationActions:
   - Deny
@@ -105,7 +118,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
   policyName: kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges
   validationActions:
   - Deny
@@ -119,7 +132,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 4 }}
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
   policyName: kubescape-c-0048-deny-workloads-with-hostpath-mounts
   validationActions:
   - Deny

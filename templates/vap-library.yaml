@@ -273,7 +273,103 @@ spec:
     message: AppArmor profile types must not be set to Unconfined
   - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.appArmor }})
     message: AppArmor profile types must not be set to Unconfined
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: run-as-non-root-{{ . | lower }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }})
+    message: Must explicitly set runAsNonRoot in securityContext for {{ . }}
+  - expression: |
+      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }})
+    message: Must explicitly set runAsNonRoot in securityContext for {{ . }}
+  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }})
+    message: Must explicitly set runAsNonRoot in securityContext for {{ . }}
 {{- end }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: run-as-non-root-global
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: object.kind != 'Pod' || has(object.spec.securityContext) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot == true
+    message: Must explicitly set spec.securityContext.runAsNonRoot to true
+  - expression: |
+      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || has(object.spec.template.spec.securityContext) && has(object.spec.template.spec.securityContext.runAsNonRoot) && object.spec.template.spec.securityContext.runAsNonRoot == true
+    message: Must explicitly set spec.template.spec.securityContext.runAsNonRoot to true
+  - expression: object.kind != 'CronJob' || has(object.spec.jobTemplate.spec.template.spec.securityContext) && has(object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot) && object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot == true
+    message: Must explicitly set spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot to true
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy

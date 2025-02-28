@@ -7,3 +7,4 @@ defaultBindingNamespaceSelector:
 
 _containerCheckExpressions:
   appArmor: "!has(container.securityContext) || !has(container.securityContext.appArmorProfile) || !has(container.securityContext.appArmorProfile.type) || container.securityContext.appArmorProfile.type != 'Unconfined'"
+  runAsNonRoot: "has(container.securityContext) && has(container.securityContext.runAsNonRoot) && container.securityContext.runAsNonRoot == true"
