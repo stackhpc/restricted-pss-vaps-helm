@@ -33,6 +33,22 @@ spec:
   policyName: adding-insecure-capabilities-{{ . }}
   validationActions:
   - Deny
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: drop-capabilities-{{ . }}
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  paramRef:
+    name: helm-values
+    parameterNotFoundAction: Deny
+  policyName: must-drop-capabilities-{{ . }}
+  validationActions:
+  - Deny
 # Host ports -------------------------------------------------------------------
 ---
 apiVersion: admissionregistration.k8s.io/v1
