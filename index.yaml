@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  restricted-pss-vaps:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2025-03-03T14:32:58.272537453Z"
+    description: A Helm chart for Kubernetes
+    digest: 516aed6ed8a1674c577f0fe50342080cf9b0ffefe4cff981ba7daf7f72cff74f
+    name: restricted-pss-vaps
+    type: application
+    urls:
+    - https://github.com/stackhpc/restricted-pss-vaps-helm/releases/download/restricted-pss-vaps-0.1.0/restricted-pss-vaps-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-03-03T14:32:58.272546559Z"
