@@ -28,9 +28,9 @@ spec:
     namespaceSelector: 
 {{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
   paramRef:
-    name: basic-control-configuration # use restricted-params eventually
+    name: helm-values
     parameterNotFoundAction: Deny
-  policyName: kubescape-c-0046-deny-resources-with-insecure-capabilities-{{ . }}
+  policyName: adding-insecure-capabilities-{{ . }}
   validationActions:
   - Deny
 # Host ports -------------------------------------------------------------------
