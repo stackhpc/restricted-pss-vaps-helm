@@ -64,6 +64,7 @@ spec:
 {{- end }}
 {{- range list "containers" "initcontainers" "ephemeralcontainers" "global" }}
 # AppArmor ---------------------------------------------------------------------
+---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
 metadata:
@@ -77,6 +78,7 @@ spec:
   validationActions:
   - Deny
 # Run as non-root --------------------------------------------------------------
+---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
 metadata:
@@ -87,6 +89,20 @@ spec:
     namespaceSelector: 
 {{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
   policyName: run-as-non-root-{{ . }}
+  validationActions:
+  - Deny
+# Non-root user --------------------------------------------------------------
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: non-root-user-{{ . }}
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: non-root-user-{{ . }}
   validationActions:
   - Deny
 {{- end }}

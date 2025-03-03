@@ -314,14 +314,110 @@ spec:
       - jobs
       - cronjobs
   validations:
-  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }})
+  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }}) || object.spec.securityContext.runAsNonRoot == true
     message: Must explicitly set runAsNonRoot in securityContext for {{ . }}
   - expression: |
-      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }})
+      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }}) || object.spec.template.spec.securityContext.runAsNonRoot == true
     message: Must explicitly set runAsNonRoot in securityContext for {{ . }}
-  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }})
+  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }}) || object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot == true
     message: Must explicitly set runAsNonRoot in securityContext for {{ . }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: non-root-user-{{ . | lower }}
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.nonRootUser }})
+    message: securityContext.runAsUser must not be set to 0 for {{ . }}
+  - expression: |
+      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.nonRootUser }})
+    message: securityContext.runAsUser must not be set to 0 for {{ . }}
+  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.nonRootUser }})
+    message: securityContext.runAsUser must not be set to 0 for {{ . }}
 {{- end }}
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: non-root-user-global
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+    - apiGroups:
+      - ""
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - pods
+    - apiGroups:
+      - apps
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - deployments
+      - replicasets
+      - daemonsets
+      - statefulsets
+    - apiGroups:
+      - batch
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - jobs
+      - cronjobs
+  validations:
+  - expression: object.kind != 'Pod' || !has(object.spec.securityContext) || !has(object.spec.securityContext.runAsUser) || object.spec.securityContext.runAsUser != 0
+    message: securityContext.runAsUser must not be set to 0
+  - expression: |
+      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.securityContext) || !has(object.spec.template.spec.securityContext.runAsUser) || object.spec.template.spec.securityContext.runAsUser != 0
+    message: securityContext.runAsUser must not be set to 0
+  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplateSpec.spec.template.spec.securityContext) || !has(object.spec.jobTemplateSpec.spec.template.spec.securityContext.runAsUser) || object.spec.jobTemplateSpec.spec.template.spec.securityContext.runAsUser != 0
+    message: securityContext.runAsUser must not be set to 0
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
