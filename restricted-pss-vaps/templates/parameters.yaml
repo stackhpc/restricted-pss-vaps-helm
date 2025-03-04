@@ -2,4 +2,7 @@ apiVersion: "stackhpc.com/v1"
 kind: PSSParams
 metadata:
   name: helm-values
-allowedCapabilities: {{ $.Values.allowedCapabilities }}
+allowedCapabilities:
+{{- range $.Values.allowedCapabilities }}
+- {{ . }}
+{{- end }}
