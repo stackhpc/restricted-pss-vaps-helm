@@ -5,40 +5,7 @@ kind: ValidatingAdmissionPolicy
 metadata:
   name: kubescape-c-0057-privileged-container-denied-{{ . | lower }}
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: |
       object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, !(has(container.securityContext)) || (
@@ -70,40 +37,7 @@ kind: ValidatingAdmissionPolicy
 metadata:
   name: adding-insecure-capabilities-{{ . | lower }}
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   paramKind:
     apiVersion: stackhpc.com/v1
     kind: PSSParams
@@ -124,89 +58,7 @@ metadata:
   name: must-drop-capabilities-{{ . | lower }}
 spec:
   failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
-  validations:
-  - expression: |
-      object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.dropCapabilities }} )
-    message: Must drop all capabilities
-  - expression: |
-      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.dropCapabilities }} )
-    message: Must drop all capabilities
-  - expression: |
-      object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.{{ . }}) || object.spec.jobTemplate.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.dropCapabilities }} )
-    message: Must drop all capabilities
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: kubescape-c-0044-deny-resources-with-host-port-{{ . | lower }}
-spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || !object.spec.{{ . }}.exists(container,
       has(container.ports) && container.ports.exists(port, has(port.hostPort)))
@@ -224,40 +76,7 @@ kind: ValidatingAdmissionPolicy
 metadata:
   name: kubescape-c-0016-allow-privilege-escalation-{{ . | lower }}
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, has(container.securityContext)
       && has(container.securityContext.allowPrivilegeEscalation) &&  container.securityContext.allowPrivilegeEscalation
@@ -278,40 +97,7 @@ kind: ValidatingAdmissionPolicy
 metadata:
   name: not-overriding-apparmor-{{ . | lower }}
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.appArmor }})
     message: AppArmor profile types must not be set to Unconfined
@@ -326,40 +112,7 @@ kind: ValidatingAdmissionPolicy
 metadata:
   name: run-as-non-root-{{ . | lower }}
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }}) || object.spec.securityContext.runAsNonRoot == true
     message: Must explicitly set runAsNonRoot in securityContext for {{ . }}
@@ -374,40 +127,7 @@ kind: ValidatingAdmissionPolicy
 metadata:
   name: non-root-user-{{ . | lower }}
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.nonRootUser }})
     message: securityContext.runAsUser must not be set to 0 for {{ . }}
@@ -423,40 +143,7 @@ kind: ValidatingAdmissionPolicy
 metadata:
   name: non-root-user-global
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || !has(object.spec.securityContext) || !has(object.spec.securityContext.runAsUser) || object.spec.securityContext.runAsUser != 0
     message: securityContext.runAsUser must not be set to 0
@@ -471,40 +158,7 @@ kind: ValidatingAdmissionPolicy
 metadata:
   name: run-as-non-root-global
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || has(object.spec.securityContext) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot == true
     message: Must explicitly set spec.securityContext.runAsNonRoot to true
@@ -519,40 +173,7 @@ kind: ValidatingAdmissionPolicy
 metadata:
   name: not-overriding-apparmor-global
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || !has(object.spec.securityContext) || !has(object.spec.securityContext.appArmorProfile) || !has(object.spec.securityContext.appArmorProfile.type) || object.spec.securityContext.appArmorProfile.type != 'Unconfined'
     message: AppArmor profile types must not be set to Unconfined
@@ -571,40 +192,7 @@ metadata:
     controlId: C-0041
   name: kubescape-c-0041-deny-resources-with-host-network-access
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || !(has(object.spec.hostNetwork)) || object.spec.hostNetwork
       == false
@@ -629,40 +217,7 @@ metadata:
     controlId: C-0038
   name: kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || ((!(has(object.spec.hostPID)) || object.spec.hostPID
       == false) && (!(has(object.spec.hostIPC)) || object.spec.hostIPC == false))
@@ -689,40 +244,7 @@ metadata:
     controlId: C-0048
   name: kubescape-c-0048-deny-workloads-with-hostpath-mounts
 spec:
-  failurePolicy: Fail
-  matchConstraints:
-    resourceRules:
-    - apiGroups:
-      - ""
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - pods
-    - apiGroups:
-      - apps
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - deployments
-      - replicasets
-      - daemonsets
-      - statefulsets
-    - apiGroups:
-      - batch
-      apiVersions:
-      - v1
-      operations:
-      - CREATE
-      - UPDATE
-      resources:
-      - jobs
-      - cronjobs
+{{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:
   - expression: object.kind != 'Pod' || !has(object.spec.volumes) || object.spec.volumes.all(vol,
       !(has(vol.hostPath)))
