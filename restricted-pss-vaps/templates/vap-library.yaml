@@ -1,4 +1,8 @@
-{{- range tuple "containers" "initContainers" "ephemeralContainers" }}
+{{- range tuple "containers" "initContainers" "ephemeralContainers" "pod" }}
+
+{{ $podArg := ternary "object.spec" "container" (eq "pod" .) -}}
+{{ $deploymentArg := ternary "object.spec.template.spec" "container" (eq "pod" .) -}}
+{{ $jobArg := ternary "object.spec.jobTemplateSpec.spec.template.spec" "container" (eq "pod" .) -}}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
@@ -107,71 +111,35 @@ spec:
   - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.appArmor }})
     message: AppArmor profile types must not be set to Unconfined
 ---
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: run-as-non-root-{{ . | lower }}
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }}) || object.spec.securityContext.runAsNonRoot == true
-    message: Must explicitly set runAsNonRoot in securityContext for {{ . }}
-  - expression: |
-      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }}) || object.spec.template.spec.securityContext.runAsNonRoot == true
-    message: Must explicitly set runAsNonRoot in securityContext for {{ . }}
-  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.runAsNonRoot }}) || object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot == true
-    message: Must explicitly set runAsNonRoot in securityContext for {{ . }}
+{{ 
+include "restricted-pss-vaps.vap" (dict 
+  "name" "run-as-non-root"
+  "message" "Must explicitly set runAsNonRoot in securityContext"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "resource" $podArg "extra" "(has(object.spec.securityContext) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot == true)"))
+  "deploymentExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "resource" $deploymentArg "extra" "(has(object.spec.template.spec.securityContext) && has(object.spec.template.spec.securityContext.runAsNonRoot) && object.spec.template.spec.securityContext.runAsNonRoot == true)"))
+  "jobExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "resource" $jobArg "extra" "(has(object.spec.jobTemplate.spec.template.spec.securityContext) && has(object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot) && object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot == true)"))
+)
+}}
 ---
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: non-root-user-{{ . | lower }}
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.nonRootUser }})
-    message: securityContext.runAsUser must not be set to 0 for {{ . }}
-  - expression: |
-      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.nonRootUser }})
-    message: securityContext.runAsUser must not be set to 0 for {{ . }}
-  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.nonRootUser }})
-    message: securityContext.runAsUser must not be set to 0 for {{ . }}
+{{ 
+include "restricted-pss-vaps.vap" (dict 
+  "name" "non-root-user"
+  "message" "securityContext.runAsUser must not be set to 0"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.nonRootUser" $podArg)
+  "deploymentExpression" (include "containerCheckExpressions.nonRootUser" $deploymentArg)
+  "jobExpression" (include "containerCheckExpressions.nonRootUser" $jobArg) 
+)
+}}
 {{- end }}
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicy
 metadata:
-  name: non-root-user-global
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || !has(object.spec.securityContext) || !has(object.spec.securityContext.runAsUser) || object.spec.securityContext.runAsUser != 0
-    message: securityContext.runAsUser must not be set to 0
-  - expression: |
-      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.securityContext) || !has(object.spec.template.spec.securityContext.runAsUser) || object.spec.template.spec.securityContext.runAsUser != 0
-    message: securityContext.runAsUser must not be set to 0
-  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplateSpec.spec.template.spec.securityContext) || !has(object.spec.jobTemplateSpec.spec.template.spec.securityContext.runAsUser) || object.spec.jobTemplateSpec.spec.template.spec.securityContext.runAsUser != 0
-    message: securityContext.runAsUser must not be set to 0
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: run-as-non-root-global
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || has(object.spec.securityContext) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot == true
-    message: Must explicitly set spec.securityContext.runAsNonRoot to true
-  - expression: |
-      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || has(object.spec.template.spec.securityContext) && has(object.spec.template.spec.securityContext.runAsNonRoot) && object.spec.template.spec.securityContext.runAsNonRoot == true
-    message: Must explicitly set spec.template.spec.securityContext.runAsNonRoot to true
-  - expression: object.kind != 'CronJob' || has(object.spec.jobTemplate.spec.template.spec.securityContext) && has(object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot) && object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot == true
-    message: Must explicitly set spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot to true
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: not-overriding-apparmor-global
+  name: not-overriding-apparmor-pod
 spec:
 {{- template "restricted-pss-vaps.pod-resource-preamble" }}
   validations:

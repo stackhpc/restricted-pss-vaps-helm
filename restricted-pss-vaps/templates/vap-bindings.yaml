@@ -78,7 +78,7 @@ spec:
   validationActions:
   - Deny
 {{- end }}
-{{- range list "containers" "initcontainers" "ephemeralcontainers" "global" }}
+{{- range list "containers" "initcontainers" "ephemeralcontainers" "pod" }}
 # AppArmor ---------------------------------------------------------------------
 ---
 apiVersion: admissionregistration.k8s.io/v1
