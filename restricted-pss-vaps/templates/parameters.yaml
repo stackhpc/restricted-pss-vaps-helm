@@ -14,3 +14,7 @@ allowedSelinuxTypes:
 {{- range $.Values.allowedSelinuxTypes }}
 - {{ . }}
 {{- end }}
+allowedVolumeTypes:
+{{- range $.Values.allowedVolumeTypes }}
+- {{ . }}
+{{- end }}

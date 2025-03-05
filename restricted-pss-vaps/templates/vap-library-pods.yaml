@@ -48,3 +48,13 @@
   "deploymentExpression" (include "containerCheckExpressions.sysctls" "object.spec.template.spec")
   "jobExpression" (include "containerCheckExpressions.sysctls" "object.spec.jobTemplate.spec.template.spec") 
 )}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "volume-types"
+  "message" "Using forbidden volume type"
+  "resource" "pod"
+  "hasParams" true
+  "podExpression" (include "containerCheckExpressions.volumeTypes" "object.spec")
+  "deploymentExpression" (include "containerCheckExpressions.volumeTypes" "object.spec.template.spec")
+  "jobExpression" (include "containerCheckExpressions.volumeTypes" "object.spec.jobTemplate.spec.template.spec") 
+)}}

@@ -25,3 +25,13 @@ allowedSelinuxTypes:
 - container_init_t
 - container_kvm_t
 - container_engine_t
+
+allowedVolumeTypes:
+- configMap
+- csi
+- downwardAPI
+- emptyDir
+- ephemeral
+- persistentVolumeClaim
+- projected
+- secret

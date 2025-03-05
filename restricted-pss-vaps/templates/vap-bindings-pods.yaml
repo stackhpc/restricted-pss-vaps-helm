@@ -69,3 +69,20 @@ spec:
   policyName: sysctls-pod
   validationActions:
   - Deny
+# Volume types -----------------------------------------------------------------
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: volume-types
+spec:
+  paramRef:
+    name: helm-values
+    parameterNotFoundAction: Deny
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: volume-types-pod
+  validationActions:
+  - Deny
