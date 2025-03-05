@@ -78,7 +78,7 @@ spec:
   validationActions:
   - Deny
 {{- end }}
-{{- range list "containers" "initcontainers" "ephemeralcontainers" "global" }}
+{{- range list "containers" "initcontainers" "ephemeralcontainers" "pod" }}
 # AppArmor ---------------------------------------------------------------------
 ---
 apiVersion: admissionregistration.k8s.io/v1
@@ -138,7 +138,7 @@ spec:
   matchResources:
     namespaceSelector: 
 {{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
-  policyName: kubescape-c-0041-deny-resources-with-host-network-access
+  policyName: kubescape-c-0041-deny-resources-with-host-network-access-pod
   validationActions:
   - Deny
 ---
@@ -151,7 +151,7 @@ spec:
   matchResources:
     namespaceSelector: 
 {{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
-  policyName: kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges
+  policyName: kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges-pod
   validationActions:
   - Deny
 # Hostpath volumes -------------------------------------------------------------
@@ -165,6 +165,6 @@ spec:
   matchResources:
     namespaceSelector: 
 {{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
-  policyName: kubescape-c-0048-deny-workloads-with-hostpath-mounts
+  policyName: kubescape-c-0048-deny-workloads-with-hostpath-mounts-pod
   validationActions:
   - Deny
