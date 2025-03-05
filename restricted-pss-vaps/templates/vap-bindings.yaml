@@ -121,11 +121,52 @@ spec:
   policyName: non-root-user-{{ . }}
   validationActions:
   - Deny
+# SELinux ---------------------------------------------------------------------
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: selinux-type-{{ . }}
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: selinux-type-{{ . }}
+  validationActions:
+  - Deny
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: selinux-users-{{ . }}
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: selinux-users-{{ . }}
+  validationActions:
+  - Deny
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: selinux-roles-{{ . }}
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: selinux-roles-{{ . }}
+  validationActions:
+  - Deny
 {{- end }}
 
 # # # # #
 # Other #
 # # # # #
+---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
 metadata:

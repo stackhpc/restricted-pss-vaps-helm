@@ -87,7 +87,35 @@
   "jobExpression" (include "containerCheckExpressions.nonRootUser" $jobArg) 
 )}}
 ---
-
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "selinux-type"
+  "message" "Forbidden value in seLinxOptions.type"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.selinuxType" $podArg)
+  "deploymentExpression" (include "containerCheckExpressions.selinuxType" $deploymentArg)
+  "jobExpression" (include "containerCheckExpressions.selinuxType" $jobArg) 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "selinux-users"
+  "message" "Cannot define custom users in securityContext.seLinuxOptions"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.selinuxUsers" $podArg)
+  "deploymentExpression" (include "containerCheckExpressions.selinuxUsers" $deploymentArg)
+  "jobExpression" (include "containerCheckExpressions.selinuxUsers" $jobArg) 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "selinux-roles"
+  "message" "Cannot define custom roles in securityContext.seLinuxOptions"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.selinuxRoles" $podArg)
+  "deploymentExpression" (include "containerCheckExpressions.selinuxRoles" $deploymentArg)
+  "jobExpression" (include "containerCheckExpressions.selinuxRoles" $jobArg) 
+)}}
 {{- end }}
 
 

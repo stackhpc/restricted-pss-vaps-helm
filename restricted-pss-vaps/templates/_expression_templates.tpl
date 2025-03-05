@@ -9,3 +9,6 @@
 {{- define "containerCheckExpressions.hostNetwork" }}!(has({{ . }}.hostNetwork)) || {{ . }}.hostNetwork == false{{- end }}
 {{- define "containerCheckExpressions.hostIpcPid" }}((!(has({{ . }}.hostPID)) || {{ . }}.hostPID == false) && (!(has({{ . }}.hostIPC)) || {{ . }}.hostIPC == false)){{- end }}
 {{- define "containerCheckExpressions.hostPathVolumes" }}!has({{ . }}.volumes) || {{ . }}.volumes.all(vol, !(has(vol.hostPath))){{- end }}
+{{- define "containerCheckExpressions.selinuxType" }}!has({{ . }}.securityContext) || !has({{ . }}.securityContext.seLinuxOptions) || !has({{ . }}.securityContext.seLinuxOptions.type) || ['container_t','container_init_t','container_kvm_t','container_engine_t'].exists(type, {{ . }}.securityContext.seLinuxOptions.type == type){{- end }}
+{{- define "containerCheckExpressions.selinuxUsers" }}!has({{ . }}.securityContext) || !has({{ . }}.securityContext.seLinuxOptions) || !has({{ . }}.securityContext.seLinuxOptions.user) || {{ . }}.securityContext.seLinuxOptions.user == ''{{- end }}
+{{- define "containerCheckExpressions.selinuxRoles" }}!has({{ . }}.securityContext) || !has({{ . }}.securityContext.seLinuxOptions) || !has({{ . }}.securityContext.seLinuxOptions.role) || {{ . }}.securityContext.seLinuxOptions.role == ''{{- end }}
