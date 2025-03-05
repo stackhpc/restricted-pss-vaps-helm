@@ -126,7 +126,18 @@ spec:
 # # # # #
 # Other #
 # # # # #
-
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: apparmor-annotation
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: apparmor-annotation
+  validationActions:
+  - Deny
 # Host namespaces --------------------------------------------------------------
 ---
 apiVersion: admissionregistration.k8s.io/v1
