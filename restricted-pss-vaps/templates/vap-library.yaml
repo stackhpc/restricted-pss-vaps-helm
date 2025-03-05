@@ -1,118 +1,73 @@
+{{- range tuple "containers" "initContainers" "ephemeralContainers" }}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "kubescape-c-0016-allow-privilege-escalation"
+  "message" "Must disable privilege escalation (see more at https://hub.armosec.io/docs/c-0016)"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.privilegeEscalation" "container")
+  "deploymentExpression" (include "containerCheckExpressions.privilegeEscalation" "container")
+  "jobExpression" (include "containerCheckExpressions.privilegeEscalation" "container") 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "kubescape-c-0057-privileged-container-denied"
+  "message" "Pod has one or more privileged containers.(see more at https://hub.armosec.io/docs/c-0057)"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.privilegedContainer" "container")
+  "deploymentExpression" (include "containerCheckExpressions.privilegedContainer" "container")
+  "jobExpression" (include "containerCheckExpressions.privilegedContainer" "container") 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "adding-insecure-capabilities"
+  "message" "Adding insecure capabilities"
+  "resource" .
+  "hasParams" true
+  "podExpression" (include "containerCheckExpressions.allowedCapabilities" "container")
+  "deploymentExpression" (include "containerCheckExpressions.allowedCapabilities" "container")
+  "jobExpression" (include "containerCheckExpressions.allowedCapabilities" "container") 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "must-drop-capabilities"
+  "message" "Must drop all capabilities"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.dropCapabilities" "container")
+  "deploymentExpression" (include "containerCheckExpressions.dropCapabilities" "container")
+  "jobExpression" (include "containerCheckExpressions.dropCapabilities" "container") 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "host-ports"
+  "message" "One or more containers in the Pod has Host-port! (see more at https://hub.armosec.io/docs/c-0044)"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.hostPort" "container")
+  "deploymentExpression" (include "containerCheckExpressions.hostPort" "container")
+  "jobExpression" (include "containerCheckExpressions.hostPort" "container") 
+)}}
+{{- end }}
+
 {{- range tuple "containers" "initContainers" "ephemeralContainers" "pod" }}
 
 {{ $podArg := ternary "object.spec" "container" (eq "pod" .) -}}
 {{ $deploymentArg := ternary "object.spec.template.spec" "container" (eq "pod" .) -}}
 {{ $jobArg := ternary "object.spec.jobTemplateSpec.spec.template.spec" "container" (eq "pod" .) -}}
 ---
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: kubescape-c-0057-privileged-container-denied-{{ . | lower }}
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: |
-      object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, !(has(container.securityContext)) || (
-
-        (!(has(container.securityContext.privileged)) || container.securityContext.privileged != true) &&
-        (!(has(container.securityContext.capabilities)) || !(has(container.securityContext.capabilities.add)) ||
-        container.securityContext.capabilities.add.all(cap, cap != 'SYS_ADM')))
-      )
-    message: Pod has one or more privileged {{ . }}.(see more at https://hub.armosec.io/docs/c-0057)
-  - expression: |
-      ['Deployment','ReplicaSet','DaemonSet','StatefulSet', 'Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, !(has(container.securityContext)) || (
-
-        (!(has(container.securityContext.priviliged)) || container.securityContext.privileged != true) &&
-        (!(has(container.securityContext.capabilities)) || !(has(container.securityContext.capabilities.add)) ||
-        container.securityContext.capabilities.add.all(cap, cap != 'SYS_ADM')))
-      )
-    message: Workloads has one or more privileged {{ . }}.(see more at https://hub.armosec.io/docs/c-0057)
-  - expression: |
-      object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, !(has(container.securityContext)) || (
-
-        (!(has(container.securityContext.priviliged)) || container.securityContext.privileged != true) &&
-        (!(has(container.securityContext.capabilities)) || !(has(container.securityContext.capabilities.add)) ||
-        container.securityContext.capabilities.add.all(cap, cap != 'SYS_ADM')))
-      )
-    message: CronJob has one or more privileged {{ . }}.(see more at https://hub.armosec.io/docs/c-0057)
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "not-overriding-apparmor"
+  "message" "AppArmor profile types must not be set to Unconfined"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.appArmor" $podArg)
+  "deploymentExpression" (include "containerCheckExpressions.appArmor" $deploymentArg)
+  "jobExpression" (include "containerCheckExpressions.appArmor" $jobArg) 
+)}}
 ---
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: adding-insecure-capabilities-{{ . | lower }}
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  paramKind:
-    apiVersion: stackhpc.com/v1
-    kind: PSSParams
-  validations:
-  - expression: |
-      object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.allowedCapabilities }} )
-    message: Cannot add capabilities other than {{ $.Values.allowedCapabilities }}
-  - expression: |
-      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.allowedCapabilities }} )
-    message: Cannot add capabilities other than {{ $.Values.allowedCapabilities }}
-  - expression: |
-      object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.{{ . }}) || object.spec.jobTemplate.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.allowedCapabilities }} )
-    message: Cannot add capabilities other than {{ $.Values.allowedCapabilities }}
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: must-drop-capabilities-{{ . | lower }}
-spec:
-  failurePolicy: Fail
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || !object.spec.{{ . }}.exists(container,
-      has(container.ports) && container.ports.exists(port, has(port.hostPort)))
-    message: One or more {{ . }} in the Pod has Host-port! (see more at https://hub.armosec.io/docs/c-0044)
-  - expression: '[''Deployment'',''ReplicaSet'',''DaemonSet'',''StatefulSet'',''Job''].all(kind,
-      object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || !object.spec.template.spec.{{ . }}.exists(container,
-      has(container.ports) && container.ports.exists(port, has(port.hostPort)))'
-    message: One or more {{ . }} in the Workload has Host-port! (see more at https://hub.armosec.io/docs/c-0044)
-  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.{{ . }}) || !object.spec.jobTemplate.spec.{{ . }}.exists(container,
-      has(container.ports) && container.ports.exists(port, has(port.hostPort)))
-    message: One or more {{ . }} in the CronJob has Host-port! (see more at https://hub.armosec.io/docs/c-0044)
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: kubescape-c-0016-allow-privilege-escalation-{{ . | lower }}
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, has(container.securityContext)
-      && has(container.securityContext.allowPrivilegeEscalation) &&  container.securityContext.allowPrivilegeEscalation
-      == false)
-    message: Pods with privileged {{ . }} are not allowed! (see more at https://hub.armosec.io/docs/c-0016)
-  - expression: '[''Deployment'',''ReplicaSet'',''DaemonSet'',''StatefulSet'',''Job''].all(kind,
-      object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container,
-      has(container.securityContext) && has(container.securityContext.allowPrivilegeEscalation)
-      &&  container.securityContext.allowPrivilegeEscalation == false)'
-    message: Workloads with privileged {{ . }} are not allowed! (see more at https://hub.armosec.io/docs/c-0016)
-  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container,
-      has(container.securityContext) && has(container.securityContext.allowPrivilegeEscalation)
-      &&  container.securityContext.allowPrivilegeEscalation == false)
-    message: CronJob with privileged {{ . }} are not allowed! (see more at https://hub.armosec.io/docs/c-0016)
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: not-overriding-apparmor-{{ . | lower }}
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || !has(object.spec.{{ . }}) || object.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.appArmor }})
-    message: AppArmor profile types must not be set to Unconfined
-  - expression: |
-      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.{{ . }}) || object.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.appArmor }})
-    message: AppArmor profile types must not be set to Unconfined
-  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.{{ . }}) || object.spec.jobTemplate.spec.template.spec.{{ . }}.all(container, {{ $.Values._containerCheckExpressions.appArmor }})
-    message: AppArmor profile types must not be set to Unconfined
----
-{{ 
-include "restricted-pss-vaps.vap" (dict 
+{{ include "restricted-pss-vaps.vap" (dict 
   "name" "run-as-non-root"
   "message" "Must explicitly set runAsNonRoot in securityContext"
   "resource" .
@@ -120,11 +75,9 @@ include "restricted-pss-vaps.vap" (dict
   "podExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "resource" $podArg "extra" "(has(object.spec.securityContext) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot == true)"))
   "deploymentExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "resource" $deploymentArg "extra" "(has(object.spec.template.spec.securityContext) && has(object.spec.template.spec.securityContext.runAsNonRoot) && object.spec.template.spec.securityContext.runAsNonRoot == true)"))
   "jobExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "resource" $jobArg "extra" "(has(object.spec.jobTemplate.spec.template.spec.securityContext) && has(object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot) && object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot == true)"))
-)
-}}
+)}}
 ---
-{{ 
-include "restricted-pss-vaps.vap" (dict 
+{{ include "restricted-pss-vaps.vap" (dict 
   "name" "non-root-user"
   "message" "securityContext.runAsUser must not be set to 0"
   "resource" .
@@ -132,95 +85,35 @@ include "restricted-pss-vaps.vap" (dict
   "podExpression" (include "containerCheckExpressions.nonRootUser" $podArg)
   "deploymentExpression" (include "containerCheckExpressions.nonRootUser" $deploymentArg)
   "jobExpression" (include "containerCheckExpressions.nonRootUser" $jobArg) 
-)
-}}
+)}}
 {{- end }}
 ---
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: not-overriding-apparmor-pod
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || !has(object.spec.securityContext) || !has(object.spec.securityContext.appArmorProfile) || !has(object.spec.securityContext.appArmorProfile.type) || object.spec.securityContext.appArmorProfile.type != 'Unconfined'
-    message: AppArmor profile types must not be set to Unconfined
-  - expression: |
-      ['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || !has(object.spec.template.spec.securityContext) || !has(object.spec.template.spec.securityContext.appArmorProfile) || !has(object.spec.template.spec.securityContext.appArmorProfile.type) || object.spec.template.spec.securityContext.appArmorProfile.type != 'Unconfined'
-    message: AppArmor profile types must not be set to Unconfined
-  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.template.spec.securityContext) || !has(object.spec.jobTemplate.spec.template.spec.securityContext.appArmorProfile) || !has(object.spec.jobTemplate.spec.template.spec.securityContext.appArmorProfile.type) || object.spec.jobTemplate.spec.template.spec.securityContext.appArmorProfile.type != 'Unconfined'
-    message: AppArmor profile types must not be set to Unconfined
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "kubescape-c-0041-deny-resources-with-host-network-access"
+  "message" "Pods with hostNetwork enabled may cause security issues. (see more at https://hub.armosec.io/docs/c-0041)"
+  "resource" "pod"
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.hostNetwork" "object.spec")
+  "deploymentExpression" (include "containerCheckExpressions.hostNetwork" "object.spec.template.spec")
+  "jobExpression" (include "containerCheckExpressions.hostNetwork" "object.spec.jobTemplate.spec.template.spec") 
+)}}
 ---
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  annotations:
-    controlUrl: https://hub.armosec.io/docs/c-0041
-  labels:
-    controlId: C-0041
-  name: kubescape-c-0041-deny-resources-with-host-network-access
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || !(has(object.spec.hostNetwork)) || object.spec.hostNetwork
-      == false
-    message: Pods with hostNetwork enabled may cause security issues. (see more at
-      https://hub.armosec.io/docs/c-0041)
-  - expression: '[''Deployment'',''ReplicaSet'',''DaemonSet'',''StatefulSet'',''Job''].all(kind,
-      object.kind != kind) || !(has(object.spec.template.spec.hostNetwork)) || object.spec.template.spec.hostNetwork
-      == false'
-    message: Workloads with hostNetwork enabled may cause security issues. (see more
-      at https://hub.armosec.io/docs/c-0041)
-  - expression: object.kind != 'CronJob' || !(has(object.spec.jobTemplate.spec.template.spec.hostNetwork))
-      || object.spec.jobTemplate.spec.template.spec.hostNetwork == false
-    message: CronJob with hostNetwork enabled may cause security issues. (see more
-      at https://hub.armosec.io/docs/c-0041)
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges"
+  "message" "Pods with hostPID and hostIPC fields enabled may allow cross-container influence. (see more at https://hub.armosec.io/docs/c-0038)"
+  "resource" "pod"
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.hostIpcPid" "object.spec")
+  "deploymentExpression" (include "containerCheckExpressions.hostIpcPid" "object.spec.template.spec")
+  "jobExpression" (include "containerCheckExpressions.hostIpcPid" "object.spec.jobTemplate.spec.template.spec") 
+)}}
 ---
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  annotations:
-    controlUrl: https://hub.armosec.io/docs/c-0038
-  labels:
-    controlId: C-0038
-  name: kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || ((!(has(object.spec.hostPID)) || object.spec.hostPID
-      == false) && (!(has(object.spec.hostIPC)) || object.spec.hostIPC == false))
-    message: Pods with hostPID and hostIPC fields enabled may allow cross-container
-      influence. (see more at https://hub.armosec.io/docs/c-0038)
-  - expression: '[''Deployment'',''ReplicaSet'',''DaemonSet'',''StatefulSet'',''Job''].all(kind,
-      object.kind != kind) || ((!(has(object.spec.template.spec.hostPID)) || object.spec.template.spec.hostPID
-      == false) && (!(has(object.spec.template.spec.hostIPC)) || object.spec.template.spec.hostPID
-      == false))'
-    message: Workloads with hostPID and hostIPC fields enabled may allow cross-container
-      influence. (see more at https://hub.armosec.io/docs/c-0038)
-  - expression: object.kind != 'CronJob' || ((!(has(object.spec.jobTemplate.spec.template.spec.hostPID))
-      || object.spec.jobTemplate.spec.template.spec.hostPID == false) && (!(has(object.spec.jobTemplate.spec.template.spec.hostIPC))
-      || object.spec.jobTemplate.spec.template.spec.hostIPC == false))
-    message: CronJob with hostPID and hostIPC fields enabled may allow cross-container
-      influence. (see more at https://hub.armosec.io/docs/c-0038)
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  annotations:
-    controlUrl: https://hub.armosec.io/docs/c-0048
-  labels:
-    controlId: C-0048
-  name: kubescape-c-0048-deny-workloads-with-hostpath-mounts
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: object.kind != 'Pod' || !has(object.spec.volumes) || object.spec.volumes.all(vol,
-      !(has(vol.hostPath)))
-    message: There are one or more hostPath mounts in the Pod! (see more at https://hub.armosec.io/docs/c-0048)
-  - expression: '[''Deployment'',''ReplicaSet'',''DaemonSet'',''StatefulSet'',''Job''].all(kind,
-      object.kind != kind) || !has(object.spec.template.spec.volumes) || object.spec.template.spec.volumes.all(vol,
-      !(has(vol.hostPath)))'
-    message: There are one or more hostPath mounts in the Workload! (see more at https://hub.armosec.io/docs/c-0048)
-  - expression: object.kind != 'CronJob' || !has(object.spec.jobTemplate.spec.volumes)
-      || object.spec.jobTemplate.spec.volumes.all(vol, !(has(vol.hostPath)))
-    message: There are one or more hostPath mounts in the CronJob! (see more at https://hub.armosec.io/docs/c-0048)
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "kubescape-c-0048-deny-workloads-with-hostpath-mounts"
+  "message" "There are one or more hostPath mounts in the Pod! (see more at https://hub.armosec.io/docs/c-0048)"
+  "resource" "pod"
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.hostPathVolumes" "object.spec")
+  "deploymentExpression" (include "containerCheckExpressions.hostPathVolumes" "object.spec.template.spec")
+  "jobExpression" (include "containerCheckExpressions.hostPathVolumes" "object.spec.jobTemplate.spec.template.spec") 
+)}}
