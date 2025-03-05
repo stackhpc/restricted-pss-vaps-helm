@@ -6,3 +6,11 @@ allowedCapabilities:
 {{- range $.Values.allowedCapabilities }}
 - {{ . }}
 {{- end }}
+allowedSysctls:
+{{- range $.Values.allowedSysctls }}
+- {{ . }}
+{{- end }}
+allowedSelinuxTypes:
+{{- range $.Values.allowedSelinuxTypes }}
+- {{ . }}
+{{- end }}

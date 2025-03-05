@@ -31,10 +31,20 @@
 ---
 {{ include "restricted-pss-vaps.vap" (dict 
   "name" "apparmor-annotation"
-  "message" "Must not set annotations['container.apparmor.security.beta.kubernetes.io/*'] to 'unconfined'"
+  "message" "Must not set annotations ['container.apparmor.security.beta.kubernetes.io/*'] to 'unconfined'"
   "resource" "pod"
   "hasParams" false
   "podExpression" (include "containerCheckExpressions.appArmorAnnotation" "object")
   "deploymentExpression" (include "containerCheckExpressions.appArmorAnnotation" "object.spec.template")
   "jobExpression" (include "containerCheckExpressions.appArmorAnnotation" "object.spec.jobTemplate.spec.template") 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "sysctls"
+  "message" "Using unsafe sysctls"
+  "resource" "pod"
+  "hasParams" true
+  "podExpression" (include "containerCheckExpressions.sysctls" "object.spec")
+  "deploymentExpression" (include "containerCheckExpressions.sysctls" "object.spec.template.spec")
+  "jobExpression" (include "containerCheckExpressions.sysctls" "object.spec.jobTemplate.spec.template.spec") 
 )}}

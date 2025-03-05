@@ -38,7 +38,7 @@
   "name" "selinux-type"
   "message" "Forbidden value in seLinxOptions.type"
   "resource" .
-  "hasParams" false
+  "hasParams" true
   "podExpression" (include "containerCheckExpressions.selinuxType" $podArg)
   "deploymentExpression" (include "containerCheckExpressions.selinuxType" $deploymentArg)
   "jobExpression" (include "containerCheckExpressions.selinuxType" $jobArg) 

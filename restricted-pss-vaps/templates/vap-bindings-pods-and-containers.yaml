@@ -49,6 +49,9 @@ metadata:
   creationTimestamp: null
   name: selinux-type-{{ . }}
 spec:
+  paramRef:
+    name: helm-values
+    parameterNotFoundAction: Deny
   matchResources:
     namespaceSelector: 
 {{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
