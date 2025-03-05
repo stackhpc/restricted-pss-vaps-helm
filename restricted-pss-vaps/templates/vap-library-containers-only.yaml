@@ -1,0 +1,52 @@
+{{- range tuple "containers" "initContainers" "ephemeralContainers" }}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "kubescape-c-0016-allow-privilege-escalation"
+  "message" "Must disable privilege escalation (see more at https://hub.armosec.io/docs/c-0016)"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.privilegeEscalation" "container")
+  "deploymentExpression" (include "containerCheckExpressions.privilegeEscalation" "container")
+  "jobExpression" (include "containerCheckExpressions.privilegeEscalation" "container") 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "kubescape-c-0057-privileged-container-denied"
+  "message" "Pod has one or more privileged containers.(see more at https://hub.armosec.io/docs/c-0057)"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.privilegedContainer" "container")
+  "deploymentExpression" (include "containerCheckExpressions.privilegedContainer" "container")
+  "jobExpression" (include "containerCheckExpressions.privilegedContainer" "container") 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "adding-insecure-capabilities"
+  "message" "Adding insecure capabilities"
+  "resource" .
+  "hasParams" true
+  "podExpression" (include "containerCheckExpressions.allowedCapabilities" "container")
+  "deploymentExpression" (include "containerCheckExpressions.allowedCapabilities" "container")
+  "jobExpression" (include "containerCheckExpressions.allowedCapabilities" "container") 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "must-drop-capabilities"
+  "message" "Must drop all capabilities"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.dropCapabilities" "container")
+  "deploymentExpression" (include "containerCheckExpressions.dropCapabilities" "container")
+  "jobExpression" (include "containerCheckExpressions.dropCapabilities" "container") 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "kubescape-c-0044-deny-resources-with-host-port"
+  "message" "One or more containers in the Pod has Host-port! (see more at https://hub.armosec.io/docs/c-0044)"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.hostPort" "container")
+  "deploymentExpression" (include "containerCheckExpressions.hostPort" "container")
+  "jobExpression" (include "containerCheckExpressions.hostPort" "container") 
+)}}
+{{- end }}
