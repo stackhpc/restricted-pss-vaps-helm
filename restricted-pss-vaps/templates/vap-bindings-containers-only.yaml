@@ -74,4 +74,18 @@ spec:
   policyName: kubescape-c-0016-allow-privilege-escalation-{{ . }}
   validationActions:
   - Deny
+# /proc Mount Type -------------------------------------------------------------
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: proc-mount-{{ . }}
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: proc-mount-{{ . }}
+  validationActions:
+  - Deny
 {{- end }}

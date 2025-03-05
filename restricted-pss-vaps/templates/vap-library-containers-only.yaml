@@ -49,4 +49,14 @@
   "deploymentExpression" (include "containerCheckExpressions.hostPort" "container")
   "jobExpression" (include "containerCheckExpressions.hostPort" "container") 
 )}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "proc-mounts"
+  "message" "Container does not have required /proc mask, set securityContext.procMount to 'Default' or undefined"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.procMount" "container")
+  "deploymentExpression" (include "containerCheckExpressions.procMount" "container")
+  "jobExpression" (include "containerCheckExpressions.procMount" "container") 
+)}}
 {{- end }}
