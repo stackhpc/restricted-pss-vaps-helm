@@ -19,9 +19,9 @@
   "message" "Must explicitly set runAsNonRoot in securityContext"
   "resource" .
   "hasParams" false
-  "podExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "resource" $podArg "extra" "(has(object.spec.securityContext) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot == true)"))
-  "deploymentExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "resource" $deploymentArg "extra" "(has(object.spec.template.spec.securityContext) && has(object.spec.template.spec.securityContext.runAsNonRoot) && object.spec.template.spec.securityContext.runAsNonRoot == true)"))
-  "jobExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "resource" $jobArg "extra" "(has(object.spec.jobTemplate.spec.template.spec.securityContext) && has(object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot) && object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot == true)"))
+  "podExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "key" $podArg "extra" "(has(object.spec.securityContext) && has(object.spec.securityContext.runAsNonRoot) && object.spec.securityContext.runAsNonRoot == true)"))
+  "deploymentExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "key" $deploymentArg "extra" "(has(object.spec.template.spec.securityContext) && has(object.spec.template.spec.securityContext.runAsNonRoot) && object.spec.template.spec.securityContext.runAsNonRoot == true)"))
+  "jobExpression" (include "containerCheckExpressions.runAsNonRoot" (dict "key" $jobArg "extra" "(has(object.spec.jobTemplate.spec.template.spec.securityContext) && has(object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot) && object.spec.jobTemplate.spec.template.spec.securityContext.runAsNonRoot == true)"))
 )}}
 ---
 {{ include "restricted-pss-vaps.vap" (dict 
@@ -62,5 +62,15 @@
   "podExpression" (include "containerCheckExpressions.selinuxRoles" $podArg)
   "deploymentExpression" (include "containerCheckExpressions.selinuxRoles" $deploymentArg)
   "jobExpression" (include "containerCheckExpressions.selinuxRoles" $jobArg) 
+)}}
+---
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "seccomp"
+  "message" "Must explicitly set securityContext.seccompProfile.type to a value which isn't 'Unconfined'"
+  "resource" .
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.seccomp" (dict "key" $podArg "extra" "has(object.spec.securityContext) && has(object.spec.securityContext.seccompProfile) && has(object.spec.securityContext.seccompProfile.type) && object.spec.securityContext.seccompProfile.type != 'Unconfined'"))
+  "deploymentExpression" (include "containerCheckExpressions.seccomp" (dict "key" $deploymentArg "extra" "has(object.spec.template.spec.securityContext) && has(object.spec.template.spec.securityContext.seccompProfile) && has(object.spec.template.spec.securityContext.seccompProfile.type) && object.spec.template.spec.securityContext.seccompProfile.type != 'Unconfined'"))
+  "jobExpression" (include "containerCheckExpressions.seccomp" (dict "key" $jobArg "extra" "has(object.spec.jobTemplate.spec.template.spec.securityContext) && has(object.spec.jobTemplate.spec.template.spec.securityContext.seccompProfile) && has(object.spec.jobTemplate.spec.template.spec.securityContext.seccompProfile.type) && object.spec.jobTemplate.spec.template.spec.securityContext.seccompProfile.type != 'Unconfined'"))
 )}}
 {{- end }}

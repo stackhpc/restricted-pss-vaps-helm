@@ -81,4 +81,17 @@ spec:
   policyName: selinux-roles-{{ . }}
   validationActions:
   - Deny
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: seccomp-{{ . }}
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: seccomp-{{ . }}
+  validationActions:
+  - Deny
 {{- end }}
