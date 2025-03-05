@@ -5,7 +5,7 @@
 {{- define "containerCheckExpressions.nonRootUser" }}!has({{ . }}.securityContext) || !has({{ . }}.securityContext.runAsUser) || {{ . }}.securityContext.runAsUser != 0{{- end }}
 {{- define "containerCheckExpressions.privilegeEscalation" }}has({{ . }}.securityContext) && has({{ . }}.securityContext.allowPrivilegeEscalation) && {{ . }}.securityContext.allowPrivilegeEscalation == false{{- end }}
 {{- define "containerCheckExpressions.privilegedContainer" }}!(has({{ . }}.securityContext)) || ((!(has({{ . }}.securityContext.priviliged)) || {{ . }}.securityContext.privileged != true) && (!(has({{ . }}.securityContext.capabilities)) || !(has({{ . }}.securityContext.capabilities.add)) || {{ . }}.securityContext.capabilities.add.all(cap, cap != 'SYS_ADM'))){{- end }}
-{{- define "containerCheckExpressions.hostPort" }}has({{ . }}.ports) && {{ . }}.ports.exists(port, has(port.hostPort)){{- end }}
+{{- define "containerCheckExpressions.hostPort" }}!has({{ . }}.ports) || !{{ . }}.ports.exists(port, has(port.hostPort)){{- end }}
 {{- define "containerCheckExpressions.hostNetwork" }}!(has({{ . }}.hostNetwork)) || {{ . }}.hostNetwork == false{{- end }}
 {{- define "containerCheckExpressions.hostIpcPid" }}((!(has({{ . }}.hostPID)) || {{ . }}.hostPID == false) && (!(has({{ . }}.hostIPC)) || {{ . }}.hostIPC == false)){{- end }}
 {{- define "containerCheckExpressions.hostPathVolumes" }}!has({{ . }}.volumes) || {{ . }}.volumes.all(vol, !(has(vol.hostPath))){{- end }}

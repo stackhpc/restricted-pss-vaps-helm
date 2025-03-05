@@ -41,7 +41,7 @@
 )}}
 ---
 {{ include "restricted-pss-vaps.vap" (dict 
-  "name" "host-ports"
+  "name" "kubescape-c-0044-deny-resources-with-host-port"
   "message" "One or more containers in the Pod has Host-port! (see more at https://hub.armosec.io/docs/c-0044)"
   "resource" .
   "hasParams" false
