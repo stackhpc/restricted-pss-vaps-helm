@@ -16,6 +16,18 @@ spec:
               items:
                 type: string
               type: array
+            allowedSysctls:
+              items:
+                type: string
+              type: array
+            allowedSelinuxTypes:
+              items:
+                type: string
+              type: array
+            allowedVolumeTypes:
+              items:
+                type: string
+              type: array
   scope: Cluster
   names:
     plural: pssparams

@@ -1,0 +1,88 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: apparmor-annotation
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: apparmor-annotation-pod
+  validationActions:
+  - Deny
+# Host namespaces --------------------------------------------------------------
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: host-networking
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: kubescape-c-0041-deny-resources-with-host-network-access-pod
+  validationActions:
+  - Deny
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: host-pid-ipc
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges-pod
+  validationActions:
+  - Deny
+# Hostpath volumes -------------------------------------------------------------
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: hostpath-mounts
+spec:
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: kubescape-c-0048-deny-workloads-with-hostpath-mounts-pod
+  validationActions:
+  - Deny
+# Sysctls ----------------------------------------------------------------------
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: sysctls
+spec:
+  paramRef:
+    name: helm-values
+    parameterNotFoundAction: Deny
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: sysctls-pod
+  validationActions:
+  - Deny
+# Volume types -----------------------------------------------------------------
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  creationTimestamp: null
+  name: volume-types
+spec:
+  paramRef:
+    name: helm-values
+    parameterNotFoundAction: Deny
+  matchResources:
+    namespaceSelector: 
+{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+  policyName: volume-types-pod
+  validationActions:
+  - Deny

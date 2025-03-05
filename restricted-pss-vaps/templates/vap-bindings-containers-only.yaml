@@ -1,6 +1,3 @@
-# # # # # # # # # # # # # #
-# Security context checks #
-# # # # # # # # # # # # # #
 {{- range tuple "containers" "initcontainers" "ephemeralcontainers" }}
 # Privileged containers ---------------------------------------------------------
 ---
@@ -77,94 +74,18 @@ spec:
   policyName: kubescape-c-0016-allow-privilege-escalation-{{ . }}
   validationActions:
   - Deny
-{{- end }}
-{{- range list "containers" "initcontainers" "ephemeralcontainers" "pod" }}
-# AppArmor ---------------------------------------------------------------------
+# /proc Mount Type -------------------------------------------------------------
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
 metadata:
   creationTimestamp: null
-  name: apparmor-{{ . }}
+  name: proc-mount-{{ . }}
 spec:
   matchResources:
     namespaceSelector: 
 {{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
-  policyName: not-overriding-apparmor-{{ . }}
-  validationActions:
-  - Deny
-# Run as non-root --------------------------------------------------------------
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicyBinding
-metadata:
-  creationTimestamp: null
-  name: run-as-non-root-{{ . }}
-spec:
-  matchResources:
-    namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
-  policyName: run-as-non-root-{{ . }}
-  validationActions:
-  - Deny
-# Non-root user --------------------------------------------------------------
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicyBinding
-metadata:
-  creationTimestamp: null
-  name: non-root-user-{{ . }}
-spec:
-  matchResources:
-    namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
-  policyName: non-root-user-{{ . }}
+  policyName: proc-mount-{{ . }}
   validationActions:
   - Deny
 {{- end }}
-
-# # # # #
-# Other #
-# # # # #
-
-# Host namespaces --------------------------------------------------------------
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicyBinding
-metadata:
-  creationTimestamp: null
-  name: host-networking
-spec:
-  matchResources:
-    namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
-  policyName: kubescape-c-0041-deny-resources-with-host-network-access-pod
-  validationActions:
-  - Deny
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicyBinding
-metadata:
-  creationTimestamp: null
-  name: host-pid-ipc
-spec:
-  matchResources:
-    namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
-  policyName: kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges-pod
-  validationActions:
-  - Deny
-# Hostpath volumes -------------------------------------------------------------
----
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicyBinding
-metadata:
-  creationTimestamp: null
-  name: hostpath-mounts
-spec:
-  matchResources:
-    namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
-  policyName: kubescape-c-0048-deny-workloads-with-hostpath-mounts-pod
-  validationActions:
-  - Deny
