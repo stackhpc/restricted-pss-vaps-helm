@@ -29,13 +29,12 @@
   "jobExpression" (include "containerCheckExpressions.hostPathVolumes" "object.spec.jobTemplate.spec.template.spec") 
 )}}
 ---
-apiVersion: admissionregistration.k8s.io/v1
-kind: ValidatingAdmissionPolicy
-metadata:
-  name: apparmor-annotation
-spec:
-{{- template "restricted-pss-vaps.pod-resource-preamble" }}
-  validations:
-  - expression: |
-     !has(object.metadata.annotations) || object.metadata.annotations.filter(annotation, annotation.matches("container.apparmor.security.beta.kubernetes.io/*")).all(currentAnnotation, object.metadata.annotations[currentAnnotation] != "Unconfined")
-    message: Must not set annotations["container.apparmor.security.beta.kubernetes.io/*"] to 'Unconfined'
+{{ include "restricted-pss-vaps.vap" (dict 
+  "name" "apparmor-annotation"
+  "message" "Must not set annotations['container.apparmor.security.beta.kubernetes.io/*'] to 'unconfined'"
+  "resource" "pod"
+  "hasParams" false
+  "podExpression" (include "containerCheckExpressions.appArmorAnnotation" "object")
+  "deploymentExpression" (include "containerCheckExpressions.appArmorAnnotation" "object.spec.template")
+  "jobExpression" (include "containerCheckExpressions.appArmorAnnotation" "object.spec.jobTemplate.spec.template") 
+)}}

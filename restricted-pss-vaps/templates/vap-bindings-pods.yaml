@@ -8,7 +8,7 @@ spec:
   matchResources:
     namespaceSelector: 
 {{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
-  policyName: apparmor-annotation
+  policyName: apparmor-annotation-pod
   validationActions:
   - Deny
 # Host namespaces --------------------------------------------------------------
