@@ -7,7 +7,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.apparmor | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: apparmor-annotation-pod
   validationActions:
   - Deny
@@ -21,7 +21,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.hostNamespaces | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: kubescape-c-0041-deny-resources-with-host-network-access-pod
   validationActions:
   - Deny
@@ -34,7 +34,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.hostNamespaces | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: kubescape-c-0038-deny-resources-with-host-ipc-or-pid-privileges-pod
   validationActions:
   - Deny
@@ -48,7 +48,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.hostPathVolumes | default $.Values.defaultBindingNamespaceSelector ) | toYaml | indent 6 }}
   policyName: kubescape-c-0048-deny-workloads-with-hostpath-mounts-pod
   validationActions:
   - Deny
@@ -65,7 +65,7 @@ spec:
     parameterNotFoundAction: Deny
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.sysctls | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: sysctls-pod
   validationActions:
   - Deny
@@ -82,7 +82,7 @@ spec:
     parameterNotFoundAction: Deny
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.volumeTypes | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: volume-types-pod
   validationActions:
   - Deny

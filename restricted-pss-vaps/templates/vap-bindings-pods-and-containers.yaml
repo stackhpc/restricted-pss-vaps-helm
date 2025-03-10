@@ -9,7 +9,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.apparmor | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: not-overriding-apparmor-{{ . }}
   validationActions:
   - Deny
@@ -23,7 +23,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.runAsNonRoot | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: run-as-non-root-{{ . }}
   validationActions:
   - Deny
@@ -37,7 +37,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.nonRootUser | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: non-root-user-{{ . }}
   validationActions:
   - Deny
@@ -54,7 +54,7 @@ spec:
     parameterNotFoundAction: Deny
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.selinux | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: selinux-type-{{ . }}
   validationActions:
   - Deny
@@ -67,7 +67,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.selinux | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: selinux-users-{{ . }}
   validationActions:
   - Deny
@@ -80,10 +80,11 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.selinux | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: selinux-roles-{{ . }}
   validationActions:
   - Deny
+# Seccomp ---------------------------------------------------------------------
 ---
 apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingAdmissionPolicyBinding
@@ -93,7 +94,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.seccomp | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: seccomp-{{ . }}
   validationActions:
   - Deny
