@@ -1,4 +1,4 @@
-apiVersion: "stackhpc.com/v1"
+apiVersion: "policy.stackhpc.com/v1"
 kind: PSSParams
 metadata:
   name: helm-values

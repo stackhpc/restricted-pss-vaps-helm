@@ -7,7 +7,7 @@ spec:
 {{- template "restricted-pss-vaps.pod-resource-preamble" }}
   {{ if .hasParams }}
   paramKind:
-    apiVersion: stackhpc.com/v1
+    apiVersion: policy.stackhpc.com/v1
     kind: PSSParams
   {{ end }}
   validations:

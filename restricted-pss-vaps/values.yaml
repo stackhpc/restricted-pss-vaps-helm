@@ -5,6 +5,22 @@ defaultBindingNamespaceSelector:
     values:
     - default
 
+bindingNamespaceSelectorOverrides:
+  runAsNonRoot:
+  apparmor:
+  nonRootUser:
+  selinux:
+  seccomp:
+  privilegedContainers:
+  capabilities:
+  hostPorts:
+  privilegeEscalation:
+  procMountType:
+  hostNamespaces:
+  hostPathVolumes:
+  sysctls:
+  volumeTypes:
+
 allowedCapabilities:
 - NET_BIND_SERVICE
 

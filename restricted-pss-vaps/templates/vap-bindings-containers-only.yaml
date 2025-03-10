@@ -9,7 +9,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.privilegedContainers | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: kubescape-c-0057-privileged-container-denied-{{ . }}
   validationActions:
   - Deny
@@ -23,7 +23,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.capabilities | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   paramRef:
     name: helm-values
     parameterNotFoundAction: Deny
@@ -39,7 +39,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.capabilities | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   paramRef:
     name: helm-values
     parameterNotFoundAction: Deny
@@ -56,7 +56,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.hostPorts | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: kubescape-c-0044-deny-resources-with-host-port-{{ . }}
   validationActions:
   - Deny
@@ -70,7 +70,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.privilegeEscalation | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: kubescape-c-0016-allow-privilege-escalation-{{ . }}
   validationActions:
   - Deny
@@ -84,7 +84,7 @@ metadata:
 spec:
   matchResources:
     namespaceSelector: 
-{{ $.Values.defaultBindingNamespaceSelector | toYaml | indent 6 }}
+{{ ($.Values.bindingNamespaceSelectorOverrides.procMountType | default $.Values.defaultBindingNamespaceSelector) | toYaml | indent 6 }}
   policyName: proc-mount-{{ . }}
   validationActions:
   - Deny
